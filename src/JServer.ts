@@ -1,70 +1,102 @@
 import * as http from 'http';
-import {IRoute, /*IRoutes, IAddRoute*/} from './JInterfaces';
+import {IRoute, IRouteObject /*IRoutes, IAddRoute*/} from './JInterfaces';
 import {TJNode} from './JTree';
 /*------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------*/
 export class TJServer {
   private _server: http.Server;
-  private _routes: TRoute;
+  private _routes: TJNode<IRouteObject>;
 
   /** Create TJServer instance */
   constructor() {
-    this._server = http.createServer(this._listener);
-    this._routes = new TRoute({});
+    this._server = http.createServer(this._listener.bind(this));
+    this._routes = new TJNode;
   }
 
   /** Start server and listen to port */
-  listen(port: number) {
+  public listen(port: number) {
     this._server.listen(port);
   }
 
-  /** Add Routes from list */
-  routes(value: IRoute[]) {
-    for (const i in value) {
+  /** Import Routes from list */
+  public addRoutes(value: IRoute[]) {
+    this._addRoutes(value, this._routes);
+  }
 
+  set defaultRoute(value: IRouteObject) {
+    this._routes.object = value;
+  }
+
+  /** Add Routes from list */
+  private _addRoutes(value: IRoute[], parent: TJNode<IRouteObject>) {
+    for (const i in value) {
+      const newRoute = this._addRoute(value[i], parent);
+      if (value[i].routes) {
+        this._addRoutes(value[i].routes || [], newRoute);
+      }
     }
   }
-  /** Add One Route */
-  route(value: IRoute) {
 
+  /** Add One Route */
+  private _addRoute(value: IRoute, parent: TJNode<IRouteObject>): TJNode<IRouteObject> {
+    return parent.add(value.route, transformRoute(value));
   }
 
   /** Listener to createServer */
   private _listener(req: http.IncomingMessage, res: http.ServerResponse) {
     if (req.url != '/favicon.ico') {
+      // write standard header
       res.writeHead(200, {'Content-Type': 'application/json'});
-      res.write(JSON.stringify({name: 'Test'}));
+      // transform url to array
+      const url = transformURL(req.url || '');
+      const obj = this._getRouteObject(url);
+      if (obj) {
+        const func = obj.handler || function() { return {}};
+        // write results
+        res.write(JSON.stringify( func() ));
+      }
     }
     res.end();
+  }
+
+  private _getRouteObject(url: string[]): IRouteObject {
+    if (!url[0]) {
+      return this._routes.object;
+    } else {
+      let route = this._routes;
+      for (const i in url) {
+        const node = route.nodes[url[i]];
+        if (node) {
+          route = node;
+        } else {
+          return errorDoesNotExist();
+        }
+      }
+      return route.object;
+    }
   }
 
 }
 /*------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------*/
-/** Routes */
-// class TRoutes implements IRoutes {
-//   _segments: { [s: string]: IRoute };
-
-//   constructor() {
-//     this._segments = {};
-//   }
-
-//   add(value: IAddRoute) {
-//     const newRoute = new TRoute;
-//   }
-// }
+function transformRoute(route: IRoute): IRouteObject {
+  return {
+    handler: route.handler
+  };
+}
 /*------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------*/
-/** Route */
-class TRoute extends TJNode {
-  
-  constructor(route: IRoute) {
-    super(route);
-  }
-
-  get route(): IRoute {
-    return this._object;
-  }
+function transformURL(url: string) {
+  return url.split('/').slice(1);
+}
+/*------------------------------------------------------------------------------------*/
+/*------------------------------------------------------------------------------------*/
+function errorDoesNotExist(): IRouteObject {
+  return {
+    handler: function () {
+      return { error: 'THIS PATH DOES NOT EXIST'};
+    }
+  };
 }
 /*------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------*/

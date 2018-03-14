@@ -6,9 +6,18 @@ const server = new jserver.TJServer;
 
 // routes
 const routes = [
-  {route: 'user', json: {user: 'username'}},
-  {route: 'info', json: {info: 'some info'}},
+  {route: 'user', handler: () => { return { message: 'user'} }},
+  {route: 'info', handler: () => { return { message: 'info'}}, routes: [
+    {route: 'a', handler: () => { return { submessage: 'info/a'}}}
+  ]},
 ];
+
+server.addRoutes(routes);
+server.defaultRoute = {
+  handler: function () {
+    return { message: 'home'};
+  }
+};
 
 
 // start server

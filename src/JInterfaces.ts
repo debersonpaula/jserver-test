@@ -1,11 +1,10 @@
+/** interface for import routes from a list */
 export interface IRoute {
-  route?: string;
+  route: string;
+  handler?: Function;
+  routes?: IRoute[];
+}
+/** interface to assign object inside router */
+export interface IRouteObject {
   handler?: Function;
 }
-// export interface IRoute {
-//   _handler?: Function;
-//   _routes?: IRoutes;
-// }
-// export interface IRoutes {
-//   _segments: { [s: string]: IRoute };
-// }
