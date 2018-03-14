@@ -1,0 +1,19 @@
+{
+  "name": "jserver",
+  "version": "0.0.1",
+  "description": "JSON Server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "JSON",
+    "http",
+    "server"
+  ],
+  "author": "D.A.Paula",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^9.4.7"
+  }
+}
