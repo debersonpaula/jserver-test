@@ -1,5 +1,5 @@
 import * as http from 'http';
-import {IRoute, IRouteObject /*IRoutes, IAddRoute*/} from './JInterfaces';
+import {IRoute, IRouteObject, IRouteRequest} from './JInterfaces';
 import {TJNode} from './JTree';
 /*------------------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------------------*/
@@ -48,8 +48,8 @@ export class TJServer {
       // write standard header
       res.writeHead(200, {'Content-Type': 'application/json'});
       // transform url to array
-      const url = transformURL(req.url || '');
-      const obj = this._getRouteObject(url);
+      // const url = transformURL(req.url || '');
+      const obj = this._getRouteObject(req.url || '');
       if (obj) {
         const func = obj.handler || function() { return {}};
         // write results
@@ -59,21 +59,36 @@ export class TJServer {
     res.end();
   }
 
-  private _getRouteObject(url: string[]): IRouteObject {
-    if (!url[0]) {
-      return this._routes.object;
-    } else {
+  private _getRouteObject(urlstr: string): IRouteObject {
+    const url = transformURL(urlstr);
+    const request : IRouteRequest = {
+      route: '',
+      url: urlstr,
+      params: {}
+    };
+    let routeObject = this._routes.object;
+    if (url[0]) {
+      // check sequence of url
       let route = this._routes;
       for (const i in url) {
+        // get node defined by url
         const node = route.nodes[url[i]];
+        // if node exists go to the next node
         if (node) {
+          // if node is a param, add to params insted
+          if (node.object.isParam) {
+            // request.params[ node.object. ]
+          }
           route = node;
+        // if not exists, throw error
         } else {
           return errorDoesNotExist();
         }
       }
-      return route.object;
+      routeObject = route.object;
     }
+
+    return Object.assign({}, routeObject, {request});
   }
 
 }
@@ -81,7 +96,8 @@ export class TJServer {
 /*------------------------------------------------------------------------------------*/
 function transformRoute(route: IRoute): IRouteObject {
   return {
-    handler: route.handler
+    handler: route.handler,
+    isParam: route.isParam,
   };
 }
 /*------------------------------------------------------------------------------------*/

@@ -8,7 +8,7 @@ const server = new jserver.TJServer;
 const routes = [
   {route: 'user', handler: () => { return { message: 'user'} }},
   {route: 'info', handler: () => { return { message: 'info'}}, routes: [
-    {route: 'a', handler: () => { return { submessage: 'info/a'}}}
+    {route: 'name', handler: () => { return { submessage: 'info/a'}}}
   ]},
 ];
 
@@ -19,6 +19,10 @@ server.defaultRoute = {
   }
 };
 
-
 // start server
 server.listen(8080);
+
+// controllers
+function UserController() {
+  
+}
