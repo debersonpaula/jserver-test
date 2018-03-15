@@ -1,0 +1,14 @@
+{
+	"user": {
+		"@handler": "UserController/getUser",
+		"count": {
+			"@handler": "UserController/count"
+		}
+	},
+	"info": {
+		"@handler": "InfoController/getInfo",
+		"@params": {
+			"headers": ["name"]
+		}
+	}
+}

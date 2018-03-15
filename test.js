@@ -5,41 +5,23 @@ const jserver = require('./lib/JServer');
 const server = new jserver.TJServer;
 
 // routes
-const routes = [
-  {
-    route: 'user',
-    handler: UserController,
-    routes: [
-      {route: 'count', handler: function(req) { return { sub: 'user/count' }}}
-    ]
-  },
-  {
-    route: 'info',
-    handler: NullController,
-    params: {
-      headers: ['name']
-    }
-  },
-];
-
-server.addRoutes(routes);
-server.defaultRoute = {handler: HomeController};
-
-// start server
-server.listen(8080);
+console.log('Load Routes json...');
+const routes = require('./routes.json');
 
 // controllers
-function HomeController(req) {
-  console.log('HomeController > ', req);
-  return { message: 'home'};
-}
+console.log('Import Controllers...');
+// const ctls = require('./controller');
+server.addControllers(require('./controller'));
 
-function UserController(req) {
-  console.log('UserController > ', req);
-  return { message: 'user'};
-}
+// import
+console.log('Import Routes...');
+server.addRoutes(routes);
 
-function NullController(req) {
-  console.log('NullController > ', req);
-  return { message: 'empty'};
-}
+// start server
+console.log('Starting server...');
+server.listen(8080);
+
+// event handler
+server.on('listening', function() {
+  console.log('Server Started at 8080.')
+});
